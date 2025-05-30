@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}Register Student{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">Register New Student</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST" enctype="multipart/form-data">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="register_no" class="form-label">Register Number</label>
+                            <input type="text" class="form-control" id="register_no" name="register_no" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="name" class="form-label">Full Name</label>
+                            <input type="text" class="form-control" id="name" name="name" required>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="batch" class="form-label">Batch</label>
+                            <input type="text" class="form-control" id="batch" name="batch" required
+                                   placeholder="e.g., 2023-2027">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="department" class="form-label">Department</label>
+                            <select class="form-select" id="department" name="department" required>
+                                <option value="">Select Department</option>
+                                <option value="CSE">Computer Science Engineering</option>
+                                <option value="ECE">Electronics & Communication Engineering</option>
+                                <option value="EEE">Electrical & Electronics Engineering</option>
+                                <option value="MECH">Mechanical Engineering</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="image" class="form-label">Student Photo</label>
+                        <div class="row">
+                            <div class="col-md-8">
+                                <input type="file" class="form-control" id="image" name="image" 
+                                       accept="image/*" required>
+                                <div class="form-text">Upload a clear front-facing photo for face recognition.</div>
+                            </div>
+                            <div class="col-md-4">
+                                <img id="preview" src="#" alt="Preview" style="display: none; max-width: 100%; height: auto;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="button" class="btn btn-secondary me-md-2" onclick="history.back()">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Register Student</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('image').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const preview = document.getElementById('preview');
+            preview.src = e.target.result;
+            preview.style.display = 'block';
+        }
+        reader.readAsDataURL(file);
+    }
+});
+</script>
+{% endblock %}

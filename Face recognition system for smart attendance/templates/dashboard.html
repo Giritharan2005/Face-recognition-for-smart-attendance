@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2>Staff Dashboard</h2>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{{ url_for('register_student') }}" class="btn btn-primary me-2">
+            <i class="bi bi-person-plus"></i> Register Student
+        </a>
+        <a href="{{ url_for('download_report') }}" class="btn btn-success">
+            <i class="bi bi-download"></i> Download Report
+        </a>
+    </div>
+</div>
+
+<div class="card shadow">
+    <div class="card-header bg-white">
+        <h5 class="mb-0">Registered Students</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Register No</th>
+                        <th>Name</th>
+                        <th>Batch</th>
+                        <th>Department</th>
+                        <th>Last Attendance</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                        <th>Attendance %</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for student in students %}
+                    <tr>
+                        <td>{{ student.register_no }}</td>
+                        <td>{{ student.name }}</td>
+                        <td>{{ student.batch }}</td>
+                        <td>{{ student.department }}</td>
+                        <td>
+                            {% set last_attendance = student.attendance|sort(attribute='date')|last %}
+                            {% if last_attendance %}
+                                {{ last_attendance.date }} {% if last_attendance.time %}at {{ last_attendance.time }}{% endif %}
+                            {% else %}
+                                Never
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if last_attendance and last_attendance.date == today %}
+                                <span class="badge bg-success">Present</span>
+                                {% if last_attendance.time %}
+                                    <small class="d-block mt-1">{{ last_attendance.time }}</small>
+                                {% endif %}
+                            {% else %}
+                                <span class="badge bg-danger">Absent</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group">
+                                <a href="#" class="btn btn-sm btn-danger delete-student" data-student-id="{{ student.id }}">
+                                    <i class="bi bi-trash"></i> Delete
+                                </a>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="progress" style="height: 20px;">
+                                <div class="progress-bar {% if student.attendance_percentage >= 75 %}bg-success{% elif student.attendance_percentage >= 50 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                     role="progressbar" 
+                                     style="width: {{ student.attendance_percentage }}%;" 
+                                     aria-valuenow="{{ student.attendance_percentage }}" 
+                                     aria-valuemin="0" 
+                                     aria-valuemax="100">
+                                    {{ "%.2f"|format(student.attendance_percentage) }}%
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center">No students registered yet</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">Department-wise Student Registration & Attendance</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Department</th>
+                                <th>Students Registered</th>
+                                <th>Average Attendance Percentage</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for dept, data in department_data.items() %}
+                            <tr>
+                                <td>{{ dept }}</td>
+                                <td>{{ data.student_count }}</td>
+                                <td>
+                                    <div class="progress" style="height: 20px;">
+                                        <div class="progress-bar bg-success" role="progressbar" 
+                                            style="width: {{ data.avg_attendance }}%;" 
+                                            aria-valuenow="{{ data.avg_attendance }}" aria-valuemin="0" aria-valuemax="100">
+                                            {{ "%.2f"|format(data.avg_attendance) }}%
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="3" class="text-center">No departments registered yet</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize any interactive elements if needed
+    console.log('Dashboard loaded successfully');
+
+    // Handle student deletion
+    document.querySelectorAll('.delete-student').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            const studentId = this.dataset.studentId;
+            
+            // Show confirmation dialog
+            if (confirm('Are you sure you want to delete this student? This action cannot be undone.')) {
+                // Make POST request to delete the student
+                fetch(`/delete_student/${studentId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => {
+                    if (response.ok) {
+                        // Refresh the page after successful deletion
+                        location.reload();
+                    } else {
+                        throw new Error('Failed to delete student');
+                    }
+                })
+                .catch(error => {
+                    alert('Error deleting student: ' + error.message);
+                });
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
